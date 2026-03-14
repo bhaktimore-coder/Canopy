@@ -2,68 +2,102 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>ChatApp — Login</title>
+  <title>Canopy</title>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
       font-family: 'Plus Jakarta Sans', sans-serif;
-      background: #daeeff;
+      background: #f0f7f0;
       min-height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
     }
 
-    .auth-box {
-      background: #ffffff;
-      padding: 40px 44px;
-      border-radius: 20px;
-      width: 400px;
+    .page {
       display: flex;
-      flex-direction: column;
-      gap: 16px;
-      border: 1.5px solid #c2e0f7;
+      width: 900px;
+      min-height: 580px;
+      border-radius: 28px;
+      overflow: hidden;
+      box-shadow: 0 12px 48px rgba(60, 100, 60, 0.13);
     }
 
-    .brand {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 4px;
+    /* ── LEFT — illustration ── */
+    .illustration-side {
+      width: 45%;
+      position: relative;
+      overflow: hidden;
+      flex-shrink: 0;
     }
 
-    .brand-icon {
-      width: 60px;
-      height: 60px;
-      background: #daeeff;
-      border-radius: 18px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+    .illustration-side img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .illustration-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(30, 80, 30, 0.18);
+    }
+
+    .illustration-label {
+      position: absolute;
+      bottom: 32px;
+      left: 28px;
+      right: 28px;
+    }
+
+    .illustration-label h2 {
       font-size: 28px;
-      border: 1.5px solid #c2e0f7;
-    }
-
-    .brand h1 {
-      font-size: 24px;
       font-weight: 800;
-      color: #1a3c52;
-      letter-spacing: -0.5px;
+      color: #ffffff;
+      text-shadow: 0 2px 12px rgba(0,0,0,0.25);
+      line-height: 1.2;
     }
 
-    .brand .subtitle {
+    .illustration-label p {
+      font-size: 14px;
+      color: rgba(255,255,255,0.85);
+      margin-top: 6px;
+      font-weight: 500;
+      text-shadow: 0 1px 6px rgba(0,0,0,0.2);
+    }
+
+    /* ── RIGHT — form ── */
+    .form-side {
+      flex: 1;
+      background: #f5f9f5;
+      padding: 44px 40px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 18px;
+    }
+
+    .form-header h1 {
+      font-size: 22px;
+      font-weight: 800;
+      color: #1a3d1a;
+      letter-spacing: -0.3px;
+    }
+
+    .form-header p {
       font-size: 13px;
-      color: #7aafc9;
+      color: #7a9e7a;
+      margin-top: 4px;
       font-weight: 500;
     }
 
     .tab-row {
       display: flex;
-      background: #eef7fd;
-      border-radius: 10px;
+      background: #e4f0e4;
+      border-radius: 12px;
       padding: 4px;
       gap: 4px;
     }
@@ -72,11 +106,11 @@
       flex: 1;
       padding: 9px;
       border: none;
-      border-radius: 8px;
+      border-radius: 9px;
       background: transparent;
-      color: #7aafc9;
+      color: #7a9e7a;
       cursor: pointer;
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 600;
       font-family: 'Plus Jakarta Sans', sans-serif;
       transition: all .2s;
@@ -84,28 +118,33 @@
 
     .tab.active {
       background: #ffffff;
-      color: #2a7fad;
-      border: 1.5px solid #c2e0f7;
+      color: #2d6a2d;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
     }
 
-    .form-group {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    #login-form,
-    #register-form {
+    .form-body {
       display: flex;
       flex-direction: column;
       gap: 12px;
     }
 
+    .row-two {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
     label {
       font-size: 11px;
       font-weight: 700;
-      color: #7aafc9;
-      letter-spacing: .8px;
+      color: #5a845a;
+      letter-spacing: .7px;
     }
 
     .input-wrap {
@@ -116,134 +155,154 @@
 
     .input-icon {
       position: absolute;
-      left: 12px;
-      font-size: 15px;
+      left: 11px;
+      font-size: 14px;
       pointer-events: none;
     }
 
     input, select {
       width: 100%;
-      padding: 11px 14px 11px 38px;
+      padding: 10px 12px 10px 34px;
       border-radius: 10px;
-      border: 1.5px solid #c2e0f7;
-      background: #f4faff;
-      color: #1a3c52;
-      font-size: 14px;
+      border: 1.5px solid #c8e0c8;
+      background: #ffffff;
+      color: #1a3d1a;
+      font-size: 13px;
       font-family: 'Plus Jakarta Sans', sans-serif;
       outline: none;
-      transition: border-color .2s, background .2s;
+      transition: border-color .2s;
     }
 
     input:focus, select:focus {
-      border-color: #5ab3e8;
-      background: #ffffff;
+      border-color: #4a9e4a;
+      box-shadow: 0 0 0 3px rgba(74,158,74,0.10);
     }
 
-    input::placeholder { color: #a8cfe0; }
-
+    input::placeholder { color: #aecbae; }
     select { cursor: pointer; }
-    select option { background: #fff; color: #1a3c52; }
+    select option { background: #fff; color: #1a3d1a; }
 
     .btn-primary {
       padding: 12px;
-      background: #5ab3e8;
+      background: #3a8a3a;
       color: white;
       border: none;
-      border-radius: 10px;
-      font-size: 15px;
+      border-radius: 12px;
+      font-size: 14px;
       font-weight: 700;
       font-family: 'Plus Jakarta Sans', sans-serif;
       cursor: pointer;
-      margin-top: 4px;
       transition: background .2s, transform .1s;
       letter-spacing: .2px;
+      margin-top: 2px;
     }
 
-    .btn-primary:hover  { background: #3a9fd8; }
+    .btn-primary:hover  { background: #2d6e2d; }
     .btn-primary:active { transform: scale(0.98); }
 
     .error-msg {
-      color: #e05c5c;
-      font-size: 13px;
+      color: #d05050;
+      font-size: 12px;
       text-align: center;
-      min-height: 18px;
+      min-height: 16px;
       font-weight: 500;
     }
 
     .footer-note {
       text-align: center;
-      font-size: 12px;
-      color: #a8cfe0;
+      font-size: 11px;
+      color: #aecbae;
+    }
+
+    /* responsive — stack on small screens */
+    @media (max-width: 700px) {
+      .page { width: 100%; min-height: 100vh; flex-direction: column; border-radius: 0; }
+      .illustration-side { width: 100%; height: 220px; }
+      .form-side { padding: 32px 24px; }
+      .row-two { grid-template-columns: 1fr; }
     }
   </style>
 </head>
 <body>
 
-  <div class="auth-box">
+  <div class="page">
 
-    <div class="brand">
-      <div class="brand-icon">💬</div>
-      <h1>ChatApp</h1>
-      <p class="subtitle">Sign in to your workspace</p>
+    <!-- LEFT — tree illustration -->
+    <div class="illustration-side">
+      <img src="download.jpg" alt="Canopy illustration" />
+      <div class="illustration-overlay"></div>
+      <div class="illustration-label">
+        <h2>Welcome to<br/>Canopy 🌿</h2>
+        <p>Where every branch connects</p>
+      </div>
     </div>
 
-    <div class="tab-row">
-      <button class="tab active" onclick="showTab('login', this)">Sign In</button>
-      <button class="tab" onclick="showTab('register', this)">Register</button>
+    <!-- RIGHT — form -->
+    <div class="form-side">
+
+      <div class="form-header">
+        <h1>Hello! Welcome Aboard 👋</h1>
+        <p>We are glad to see you here</p>
+      </div>
+
+      <div class="tab-row">
+        <button class="tab active" onclick="showTab('login', this)">Sign In</button>
+        <button class="tab" onclick="showTab('register', this)">Register</button>
+      </div>
+
+      <!-- Login form -->
+      <div class="form-body" id="login-form">
+        <div class="form-group">
+          <label>USERNAME</label>
+          <div class="input-wrap">
+            <span class="input-icon">👤</span>
+            <input type="text" id="login-username" placeholder="Enter your username" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>PASSWORD</label>
+          <div class="input-wrap">
+            <span class="input-icon">🔒</span>
+            <input type="password" id="login-password" placeholder="Enter your password" />
+          </div>
+        </div>
+        <button class="btn-primary" onclick="login()">Sign In →</button>
+      </div>
+
+      <!-- Register form -->
+      <div class="form-body" id="register-form" style="display:none">
+        <div class="form-group">
+          <label>USERNAME</label>
+          <div class="input-wrap">
+            <span class="input-icon">👤</span>
+            <input type="text" id="reg-username" placeholder="Choose a username" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>PASSWORD</label>
+          <div class="input-wrap">
+            <span class="input-icon">🔒</span>
+            <input type="password" id="reg-password" placeholder="Choose a password" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>ROLE</label>
+          <div class="input-wrap">
+            <span class="input-icon">🏷️</span>
+            <select id="reg-role">
+              <option value="user">User</option>
+              <option value="moderator">Moderator</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn-primary" onclick="register()">Create Account →</button>
+      </div>
+
+      <p class="error-msg" id="error-msg"></p>
+      <p class="footer-note">Canopy • Internal use only</p>
+
     </div>
-
-    <!-- Login -->
-    <div id="login-form">
-      <div class="form-group">
-        <label>USERNAME</label>
-        <div class="input-wrap">
-          <span class="input-icon">👤</span>
-          <input type="text" id="login-username" placeholder="Enter your username" />
-        </div>
-      </div>
-      <div class="form-group">
-        <label>PASSWORD</label>
-        <div class="input-wrap">
-          <span class="input-icon">🔒</span>
-          <input type="password" id="login-password" placeholder="Enter your password" />
-        </div>
-      </div>
-      <button class="btn-primary" onclick="login()">Sign In →</button>
-    </div>
-
-    <!-- Register -->
-    <div id="register-form" style="display:none">
-      <div class="form-group">
-        <label>USERNAME</label>
-        <div class="input-wrap">
-          <span class="input-icon">👤</span>
-          <input type="text" id="reg-username" placeholder="Choose a username" />
-        </div>
-      </div>
-      <div class="form-group">
-        <label>PASSWORD</label>
-        <div class="input-wrap">
-          <span class="input-icon">🔒</span>
-          <input type="password" id="reg-password" placeholder="Choose a password" />
-        </div>
-      </div>
-      <div class="form-group">
-        <label>ROLE</label>
-        <div class="input-wrap">
-          <span class="input-icon">🏷️</span>
-          <select id="reg-role">
-            <option value="user">User</option>
-            <option value="moderator">Moderator</option>
-            <option value="admin">Admin</option>
-          </select>
-        </div>
-      </div>
-      <button class="btn-primary" onclick="register()">Create Account →</button>
-    </div>
-
-    <p class="error-msg" id="error-msg"></p>
-    <p class="footer-note">Internal use only • ChatApp v1.0</p>
-
   </div>
 
   <script>
