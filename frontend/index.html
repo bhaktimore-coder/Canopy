@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>ChatApp — Login</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="auth-container">
+    <div class="auth-box">
+      <h1>💬 ChatApp</h1>
+      <p class="subtitle">Sign in to your workspace</p>
+
+      <div class="tab-row">
+        <button class="tab active" onclick="showTab('login', this)">Login</button>
+        <button class="tab" onclick="showTab('register', this)">Register</button>
+      </div>
+
+      <div id="login-form">
+        <label>USERNAME</label>
+        <input type="text" id="login-username" placeholder="Enter your username" />
+        <label>PASSWORD</label>
+        <input type="password" id="login-password" placeholder="Enter your password" />
+        <button class="btn-primary" onclick="login()">Log In</button>
+      </div>
+
+      <div id="register-form" style="display:none">
+        <label>USERNAME</label>
+        <input type="text" id="reg-username" placeholder="Choose a username" />
+        <label>PASSWORD</label>
+        <input type="password" id="reg-password" placeholder="Choose a password" />
+        <label>ROLE</label>
+        <select id="reg-role">
+          <option value="user">User</option>
+          <option value="moderator">Moderator</option>
+          <option value="admin">Admin</option>
+        </select>
+        <button class="btn-primary" onclick="register()">Create Account</button>
+      </div>
+
+      <p class="error-msg" id="error-msg"></p>
+    </div>
+  </div>
+
+  <script>
+    function showTab(tab, btn) {
+      document.getElementById('login-form').style.display    = tab === 'login'    ? 'flex' : 'none';
+      document.getElementById('register-form').style.display = tab === 'register' ? 'flex' : 'none';
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      btn.classList.add('active');
+    }
+
+    async function login() {
+      const username = document.getElementById('login-username').value.trim();
+      const password = document.getElementById('login-password').value.trim();
+      if (!username || !password) return showError('Please fill in all fields');
+
+      const res  = await fetch('http://localhost:5000/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+      const data = await res.json();
+
+      if (data.token) {
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('username', data.user.username);
+        localStorage.setItem('role', data.user.role);
+        window.location.href = 'chat.html';
+      } else {
+        showError(data.error || 'Login failed');
+      }
+    }
+
+    async function register() {
+      const username = document.getElementById('reg-username').value.trim();
+      const password = document.getElementById('reg-password').value.trim();
+      const role     = document.getElementById('reg-role').value;
+      if (!username || !password) return showError('Please fill in all fields');
+
+      const res  = await fetch('http://localhost:5000/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password, role })
+      });
+      const data = await res.json();
+
+      if (data.token) {
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('username', data.user.username);
+        localStorage.setItem('role', data.user.role);
+        window.location.href = 'chat.html';
+      } else {
+        showError(data.error || 'Registration failed');
+      }
+    }
+
+    function showError(msg) {
+      document.getElementById('error-msg').textContent = msg;
+    }
+  </script>
+</body>
+</html>
