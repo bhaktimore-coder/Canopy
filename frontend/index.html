@@ -3,43 +3,247 @@
 <head>
   <meta charset="UTF-8">
   <title>ChatApp — Login</title>
-  <link rel="stylesheet" href="css/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: #daeeff;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .auth-box {
+      background: #ffffff;
+      padding: 40px 44px;
+      border-radius: 20px;
+      width: 400px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      border: 1.5px solid #c2e0f7;
+    }
+
+    .brand {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 4px;
+    }
+
+    .brand-icon {
+      width: 60px;
+      height: 60px;
+      background: #daeeff;
+      border-radius: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      border: 1.5px solid #c2e0f7;
+    }
+
+    .brand h1 {
+      font-size: 24px;
+      font-weight: 800;
+      color: #1a3c52;
+      letter-spacing: -0.5px;
+    }
+
+    .brand .subtitle {
+      font-size: 13px;
+      color: #7aafc9;
+      font-weight: 500;
+    }
+
+    .tab-row {
+      display: flex;
+      background: #eef7fd;
+      border-radius: 10px;
+      padding: 4px;
+      gap: 4px;
+    }
+
+    .tab {
+      flex: 1;
+      padding: 9px;
+      border: none;
+      border-radius: 8px;
+      background: transparent;
+      color: #7aafc9;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      transition: all .2s;
+    }
+
+    .tab.active {
+      background: #ffffff;
+      color: #2a7fad;
+      border: 1.5px solid #c2e0f7;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    #login-form,
+    #register-form {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    label {
+      font-size: 11px;
+      font-weight: 700;
+      color: #7aafc9;
+      letter-spacing: .8px;
+    }
+
+    .input-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .input-icon {
+      position: absolute;
+      left: 12px;
+      font-size: 15px;
+      pointer-events: none;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 11px 14px 11px 38px;
+      border-radius: 10px;
+      border: 1.5px solid #c2e0f7;
+      background: #f4faff;
+      color: #1a3c52;
+      font-size: 14px;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      outline: none;
+      transition: border-color .2s, background .2s;
+    }
+
+    input:focus, select:focus {
+      border-color: #5ab3e8;
+      background: #ffffff;
+    }
+
+    input::placeholder { color: #a8cfe0; }
+
+    select { cursor: pointer; }
+    select option { background: #fff; color: #1a3c52; }
+
+    .btn-primary {
+      padding: 12px;
+      background: #5ab3e8;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 700;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      cursor: pointer;
+      margin-top: 4px;
+      transition: background .2s, transform .1s;
+      letter-spacing: .2px;
+    }
+
+    .btn-primary:hover  { background: #3a9fd8; }
+    .btn-primary:active { transform: scale(0.98); }
+
+    .error-msg {
+      color: #e05c5c;
+      font-size: 13px;
+      text-align: center;
+      min-height: 18px;
+      font-weight: 500;
+    }
+
+    .footer-note {
+      text-align: center;
+      font-size: 12px;
+      color: #a8cfe0;
+    }
+  </style>
 </head>
 <body>
-  <div class="auth-container">
-    <div class="auth-box">
-      <h1>💬 ChatApp</h1>
+
+  <div class="auth-box">
+
+    <div class="brand">
+      <div class="brand-icon">💬</div>
+      <h1>ChatApp</h1>
       <p class="subtitle">Sign in to your workspace</p>
-
-      <div class="tab-row">
-        <button class="tab active" onclick="showTab('login', this)">Login</button>
-        <button class="tab" onclick="showTab('register', this)">Register</button>
-      </div>
-
-      <div id="login-form">
-        <label>USERNAME</label>
-        <input type="text" id="login-username" placeholder="Enter your username" />
-        <label>PASSWORD</label>
-        <input type="password" id="login-password" placeholder="Enter your password" />
-        <button class="btn-primary" onclick="login()">Log In</button>
-      </div>
-
-      <div id="register-form" style="display:none">
-        <label>USERNAME</label>
-        <input type="text" id="reg-username" placeholder="Choose a username" />
-        <label>PASSWORD</label>
-        <input type="password" id="reg-password" placeholder="Choose a password" />
-        <label>ROLE</label>
-        <select id="reg-role">
-          <option value="user">User</option>
-          <option value="moderator">Moderator</option>
-          <option value="admin">Admin</option>
-        </select>
-        <button class="btn-primary" onclick="register()">Create Account</button>
-      </div>
-
-      <p class="error-msg" id="error-msg"></p>
     </div>
+
+    <div class="tab-row">
+      <button class="tab active" onclick="showTab('login', this)">Sign In</button>
+      <button class="tab" onclick="showTab('register', this)">Register</button>
+    </div>
+
+    <!-- Login -->
+    <div id="login-form">
+      <div class="form-group">
+        <label>USERNAME</label>
+        <div class="input-wrap">
+          <span class="input-icon">👤</span>
+          <input type="text" id="login-username" placeholder="Enter your username" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label>PASSWORD</label>
+        <div class="input-wrap">
+          <span class="input-icon">🔒</span>
+          <input type="password" id="login-password" placeholder="Enter your password" />
+        </div>
+      </div>
+      <button class="btn-primary" onclick="login()">Sign In →</button>
+    </div>
+
+    <!-- Register -->
+    <div id="register-form" style="display:none">
+      <div class="form-group">
+        <label>USERNAME</label>
+        <div class="input-wrap">
+          <span class="input-icon">👤</span>
+          <input type="text" id="reg-username" placeholder="Choose a username" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label>PASSWORD</label>
+        <div class="input-wrap">
+          <span class="input-icon">🔒</span>
+          <input type="password" id="reg-password" placeholder="Choose a password" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label>ROLE</label>
+        <div class="input-wrap">
+          <span class="input-icon">🏷️</span>
+          <select id="reg-role">
+            <option value="user">User</option>
+            <option value="moderator">Moderator</option>
+            <option value="admin">Admin</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn-primary" onclick="register()">Create Account →</button>
+    </div>
+
+    <p class="error-msg" id="error-msg"></p>
+    <p class="footer-note">Internal use only • ChatApp v1.0</p>
+
   </div>
 
   <script>
@@ -55,20 +259,23 @@
       const password = document.getElementById('login-password').value.trim();
       if (!username || !password) return showError('Please fill in all fields');
 
-      const res  = await fetch('http://localhost:5000/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
-      });
-      const data = await res.json();
-
-      if (data.token) {
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('username', data.user.username);
-        localStorage.setItem('role', data.user.role);
-        window.location.href = 'chat.html';
-      } else {
-        showError(data.error || 'Login failed');
+      try {
+        const res  = await fetch('http://localhost:5000/api/auth/login', {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify({ username, password })
+        });
+        const data = await res.json();
+        if (data.token) {
+          localStorage.setItem('token',    data.token);
+          localStorage.setItem('username', data.user.username);
+          localStorage.setItem('role',     data.user.role);
+          window.location.href = 'chat.html';
+        } else {
+          showError(data.error || 'Login failed');
+        }
+      } catch {
+        showError('Cannot connect to server. Is the backend running?');
       }
     }
 
@@ -78,20 +285,23 @@
       const role     = document.getElementById('reg-role').value;
       if (!username || !password) return showError('Please fill in all fields');
 
-      const res  = await fetch('http://localhost:5000/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password, role })
-      });
-      const data = await res.json();
-
-      if (data.token) {
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('username', data.user.username);
-        localStorage.setItem('role', data.user.role);
-        window.location.href = 'chat.html';
-      } else {
-        showError(data.error || 'Registration failed');
+      try {
+        const res  = await fetch('http://localhost:5000/api/auth/register', {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify({ username, password, role })
+        });
+        const data = await res.json();
+        if (data.token) {
+          localStorage.setItem('token',    data.token);
+          localStorage.setItem('username', data.user.username);
+          localStorage.setItem('role',     data.user.role);
+          window.location.href = 'chat.html';
+        } else {
+          showError(data.error || 'Registration failed');
+        }
+      } catch {
+        showError('Cannot connect to server. Is the backend running?');
       }
     }
 
@@ -99,5 +309,6 @@
       document.getElementById('error-msg').textContent = msg;
     }
   </script>
+
 </body>
 </html>
