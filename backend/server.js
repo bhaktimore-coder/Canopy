@@ -9,6 +9,8 @@ const io = new Server(server, {
   cors: { origin: '*' }
 });
 
+const cors = require('cors');
+app.use(cors({ origin: '*' }));  // ← add this
 app.use(express.json());
 
 // Routes
