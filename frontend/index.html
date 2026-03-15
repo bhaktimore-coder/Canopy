@@ -25,7 +25,6 @@
       box-shadow: 0 12px 48px rgba(60, 100, 60, 0.13);
     }
 
-    /* ── LEFT — illustration ── */
     .illustration-side {
       width: 45%;
       position: relative;
@@ -69,7 +68,6 @@
       text-shadow: 0 1px 6px rgba(0,0,0,0.2);
     }
 
-    /* ── RIGHT — form ── */
     .form-side {
       flex: 1;
       background: #f5f9f5;
@@ -125,12 +123,6 @@
     .form-body {
       display: flex;
       flex-direction: column;
-      gap: 12px;
-    }
-
-    .row-two {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
       gap: 12px;
     }
 
@@ -201,7 +193,6 @@
     .btn-primary:active { transform: scale(0.98); }
 
     .error-msg {
-      color: #d05050;
       font-size: 12px;
       text-align: center;
       min-height: 16px;
@@ -214,12 +205,10 @@
       color: #aecbae;
     }
 
-    /* responsive — stack on small screens */
     @media (max-width: 700px) {
       .page { width: 100%; min-height: 100vh; flex-direction: column; border-radius: 0; }
       .illustration-side { width: 100%; height: 220px; }
       .form-side { padding: 32px 24px; }
-      .row-two { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -290,7 +279,7 @@
           <div class="input-wrap">
             <span class="input-icon">🏷️</span>
             <select id="reg-role">
-              <option value="user">User</option>
+              <option value="member">Member</option>
               <option value="moderator">Moderator</option>
               <option value="admin">Admin</option>
             </select>
@@ -319,7 +308,7 @@
       if (!username || !password) return showError('Please fill in all fields');
 
       try {
-        const res  = await fetch('http://localhost:5000/api/auth/login', {
+        const res  = await fetch('https://canopy-dmv8.onrender.com/auth/login', {
           method:  'POST',
           headers: { 'Content-Type': 'application/json' },
           body:    JSON.stringify({ username, password })
@@ -345,17 +334,15 @@
       if (!username || !password) return showError('Please fill in all fields');
 
       try {
-        const res  = await fetch('http://localhost:5000/api/auth/register', {
+        const res  = await fetch('https://canopy-dmv8.onrender.com/auth/register', {
           method:  'POST',
           headers: { 'Content-Type': 'application/json' },
           body:    JSON.stringify({ username, password, role })
         });
         const data = await res.json();
-        if (data.token) {
-          localStorage.setItem('token',    data.token);
-          localStorage.setItem('username', data.user.username);
-          localStorage.setItem('role',     data.user.role);
-          window.location.href = 'chat.html';
+        if (data.username) {
+          showSuccess('Account created! Please sign in 🌿');
+          showTab('login', document.querySelector('.tab'));
         } else {
           showError(data.error || 'Registration failed');
         }
@@ -365,7 +352,15 @@
     }
 
     function showError(msg) {
-      document.getElementById('error-msg').textContent = msg;
+      const el = document.getElementById('error-msg');
+      el.style.color = '#d05050';
+      el.textContent = msg;
+    }
+
+    function showSuccess(msg) {
+      const el = document.getElementById('error-msg');
+      el.style.color = '#3a8a3a';
+      el.textContent = msg;
     }
   </script>
 

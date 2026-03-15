@@ -10,19 +10,29 @@ document.getElementById('display-role').textContent     = role;
 document.getElementById('user-avatar').textContent      = username[0].toUpperCase();
 
 // Avatar color based on role
-const avatarColors = { admin: '#ed4245', moderator: '#faa81a', user: '#5865f2' };
-document.getElementById('user-avatar').style.background = avatarColors[role] || '#5865f2';
+const avatarColors = { admin: '#2d6e2d', moderator: '#4a9e4a', member: '#7abe7a' };
+document.getElementById('user-avatar').style.background = avatarColors[role] || '#3a8a3a';
 
-// Connect socket
-const socket = io('http://localhost:5000', { transports: ['websocket'] });
+// Connect socket with token auth
+const socket = io('https://canopy-dmv8.onrender.com', {
+  transports: ['websocket'],
+  auth: { token }
+});
 
-socket.on('connect', () => console.log('Connected ✅'));
+socket.on('connect', () => {
+  console.log('Connected ✅');
+  socket.emit('register'); // register personal DM channel
+});
+
+socket.on('connect_error', (err) => {
+  console.log('Connection error:', err.message);
+});
 
 let currentRoom = null;
 
 // Random avatar colors for other users
 function getColor(name) {
-  const colors = ['#5865f2','#ed4245','#faa81a','#23a55a','#eb459e','#3ba55c'];
+  const colors = ['#3a8a3a','#2d6e2d','#4a9e4a','#23a55a','#7abe7a','#1a5c1a'];
   let hash = 0;
   for (let c of name) hash = c.charCodeAt(0) + ((hash << 5) - hash);
   return colors[Math.abs(hash) % colors.length];
@@ -42,7 +52,8 @@ function joinRoom(roomId, el) {
   document.querySelectorAll('.channel-item').forEach(r => r.classList.remove('active'));
   if (el) el.classList.add('active');
 
-  socket.emit('join-room', { roomId, username, role });
+  // her backend only wants roomId not an object!
+  socket.emit('join_room', roomId);
   addDateDivider('Today');
 }
 
@@ -51,7 +62,12 @@ function sendMessage() {
   const message = input.value.trim();
   if (!message || !currentRoom) return;
 
-  socket.emit('send-message', { roomId: currentRoom, message, username, role });
+  // her backend gets username/role from JWT token automatically
+  socket.emit('send_message', {
+    roomId: currentRoom,
+    message
+  });
+
   input.value = '';
 }
 
@@ -61,27 +77,20 @@ document.getElementById('msg-input').addEventListener('keydown', e => {
 
 // ── Incoming events ──────────────────────────
 
-socket.on('receive-message', ({ username: sender, message }) => {
-  addMessage(sender, message);
-});
-
-socket.on('user-joined', ({ username: who, role: whoRole }) => {
-  addSystemMessage(`${who} joined the room`);
-  addMember(who, whoRole || 'user');
-});
-
-socket.on('announcement', ({ text }) => {
-  addAnnouncement(text);
-});
-
-socket.on('user-kicked', ({ username: who }) => {
-  if (who === username) {
-    alert('You have been kicked from this room!');
-    window.location.href = 'index.html';
-  } else {
-    addSystemMessage(`${who} was kicked`);
-    removeMember(who);
+// receive room message — her backend sends { user, role, message, roomId }
+socket.on('receive_message', ({ user, role: senderRole, message, roomId }) => {
+  if (roomId && roomId.startsWith('dm_')) return; // handled by DM listener
+  if (user === 'system') {
+    addSystemMessage(message);
+    return;
   }
+  addMessage(user, senderRole, message);
+});
+
+// receive DM — her backend sends { from, message, timestamp }
+socket.on('receive_dm', ({ from, message }) => {
+  if (!openDMs[from]) openDMPopup(from);
+  if (from !== username) addDMMessage(from, from, message);
 });
 
 socket.on('error-msg', msg => {
@@ -92,40 +101,38 @@ socket.on('error-msg', msg => {
 
 let lastAuthor = null;
 
-function addMessage(sender, message) {
+function addMessage(sender, senderRole, message) {
   const msgs = document.getElementById('messages');
 
   if (sender === lastAuthor) {
-    // Continued message — no avatar
     const div = document.createElement('div');
     div.classList.add('msg-continued');
     div.innerHTML = `
       <div class="spacer"></div>
-      <div class="msg-text">${message}</div>
+      <div class="msg-bubble ${senderRole || 'member'}">${message}</div>
     `;
     msgs.appendChild(div);
   } else {
-    // New message group with avatar
-    const div = document.createElement('div');
+    const div       = document.createElement('div');
     div.classList.add('msg-group');
-    const roleClass = sender === username ? role : '';
-    const pill = (roleClass === 'admin' || roleClass === 'moderator')
+
+    const isMine      = sender === username;
+    const roleClass   = senderRole || 'member';
+    const bubbleClass = isMine ? 'mine' : roleClass;
+    const pill        = (roleClass === 'admin' || roleClass === 'moderator')
       ? `<span class="role-pill ${roleClass}">${roleClass}</span>` : '';
 
-    const isMine       = sender === username;
-const bubbleClass  = isMine ? 'mine' : (roleClass || 'user');
-
-div.innerHTML = `
-    <div class="msg-avatar" style="background:${getColor(sender)}">${sender[0].toUpperCase()}</div>
-    <div class="msg-body">
-      <div class="msg-header">
-        <span class="msg-author ${roleClass}">${sender}</span>
-        ${pill}
-        <span class="msg-time">${getTime()}</span>
+    div.innerHTML = `
+      <div class="msg-avatar" style="background:${getColor(sender)}">${sender[0].toUpperCase()}</div>
+      <div class="msg-body">
+        <div class="msg-header">
+          <span class="msg-author ${roleClass}">${sender}</span>
+          ${pill}
+          <span class="msg-time">${getTime()}</span>
+        </div>
+        <div class="msg-bubble ${bubbleClass}">${message}</div>
       </div>
-      <div class="msg-bubble ${bubbleClass}">${message}</div>
-    </div>
-  `;
+    `;
     msgs.appendChild(div);
     lastAuthor = sender;
   }
@@ -175,15 +182,13 @@ function getTime() {
 function addMember(name, memberRole) {
   const panel = document.getElementById('members-panel');
 
-  // Clear "join a room" placeholder if it's there
   const placeholder = panel.querySelector('div[style]');
   if (placeholder) placeholder.remove();
 
-  // Don't add duplicates
   if (document.getElementById('member-' + name)) return;
 
   const sectionId = 'section-' + memberRole;
-  let section = document.getElementById(sectionId);
+  let section     = document.getElementById(sectionId);
 
   if (!section) {
     const heading = document.createElement('div');
@@ -196,6 +201,7 @@ function addMember(name, memberRole) {
   const div = document.createElement('div');
   div.classList.add('member-item');
   div.id = 'member-' + name;
+  div.onclick = () => openDMPopup(name);
   div.innerHTML = `
     <div class="member-avatar" style="background:${getColor(name)}">
       ${name[0].toUpperCase()}
@@ -207,6 +213,7 @@ function addMember(name, memberRole) {
     </div>
   `;
   panel.appendChild(div);
+  addToDMList(name, memberRole);
 }
 
 function removeMember(name) {
@@ -218,13 +225,14 @@ function removeMember(name) {
 addMember(username, role);
 
 function logout() {
+  socket.emit('leave_room', currentRoom);
   localStorage.clear();
   window.location.href = 'index.html';
 }
 
 // ── FLOATING DM POPUP ─────────────────────
 
-const openDMs = {}; // tracks open DM windows
+const openDMs = {};
 
 function addToDMList(name, memberRole) {
   if (name === username) return;
@@ -232,16 +240,14 @@ function addToDMList(name, memberRole) {
   const dmList = document.getElementById('dm-list');
   if (!dmList) return;
 
-  // remove placeholder
   const placeholder = dmList.querySelector('div[style]');
   if (placeholder) placeholder.remove();
 
-  // no duplicates
   if (document.getElementById('dmlist-' + name)) return;
 
   const div = document.createElement('div');
   div.classList.add('dm-list-item');
-  div.id = 'dmlist-' + name;
+  div.id      = 'dmlist-' + name;
   div.onclick = () => openDMPopup(name);
 
   div.innerHTML = `
@@ -255,7 +261,8 @@ function addToDMList(name, memberRole) {
 }
 
 function openDMPopup(dmUser) {
-  // if already open just focus it
+  if (dmUser === username) return; // can't DM yourself
+
   if (openDMs[dmUser]) {
     const existing = document.getElementById('dm-popup-' + dmUser);
     if (existing) existing.classList.remove('minimized');
@@ -263,11 +270,6 @@ function openDMPopup(dmUser) {
   }
 
   openDMs[dmUser] = true;
-
-  const roomId = `dm_${[username, dmUser].sort().join('_')}`;
-
-  // join the private room
-  socket.emit('join-room', { roomId, username });
 
   const popup = document.createElement('div');
   popup.classList.add('dm-popup');
@@ -284,11 +286,9 @@ function openDMPopup(dmUser) {
         <button class="dm-popup-btn" onclick="event.stopPropagation(); closeDMPopup('${dmUser}')">✕</button>
       </div>
     </div>
-
     <div class="dm-popup-messages" id="dm-msgs-${dmUser}">
       <div class="dm-date-divider">Today</div>
     </div>
-
     <div class="dm-popup-input-area">
       <input
         class="dm-popup-input"
@@ -319,29 +319,24 @@ function sendDM(dmUser) {
   const message = input.value.trim();
   if (!message) return;
 
-  const roomId = `dm_${[username, dmUser].sort().join('_')}`;
-
   // show instantly on your side
   addDMMessage(dmUser, username, message);
 
-  // send through socket
-  socket.emit('send-message', {
-    roomId,
-    message,
-    username,
-    role,
-    isDM: true
+  // use her backend's direct_message event!
+  socket.emit('direct_message', {
+    toUsername: dmUser,
+    message
   });
 
   input.value = '';
 }
 
 function addDMMessage(dmUser, sender, message) {
-  const msgs    = document.getElementById('dm-msgs-' + dmUser);
+  const msgs = document.getElementById('dm-msgs-' + dmUser);
   if (!msgs) return;
 
-  const isMine  = sender === username;
-  const div     = document.createElement('div');
+  const isMine = sender === username;
+  const div    = document.createElement('div');
   div.classList.add('dm-msg', isMine ? 'mine' : 'theirs');
 
   div.innerHTML = `
@@ -353,24 +348,3 @@ function addDMMessage(dmUser, sender, message) {
   msgs.appendChild(div);
   msgs.scrollTop = msgs.scrollHeight;
 }
-
-// listen for incoming DMs
-socket.on('receive-message', ({ username: sender, message, roomId }) => {
-  // check if it's a DM
-  if (roomId && roomId.startsWith('dm_')) {
-    const otherUser = roomId
-      .replace('dm_', '')
-      .replace(username, '')
-      .replace('_', '');
-
-    // open popup if not open
-    if (!openDMs[otherUser]) openDMPopup(otherUser);
-
-    // don't double-show your own messages
-    if (sender !== username) addDMMessage(otherUser, sender, message);
-    return;
-  }
-
-  // otherwise it's a normal channel message
-  addMessage(sender, message);
-});
