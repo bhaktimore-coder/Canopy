@@ -112,17 +112,20 @@ function addMessage(sender, message) {
     const pill = (roleClass === 'admin' || roleClass === 'moderator')
       ? `<span class="role-pill ${roleClass}">${roleClass}</span>` : '';
 
-    div.innerHTML = `
-      <div class="msg-avatar" style="background:${getColor(sender)}">${sender[0].toUpperCase()}</div>
-      <div class="msg-body">
-        <div class="msg-header">
-          <span class="msg-author ${roleClass}">${sender}</span>
-          ${pill}
-          <span class="msg-time">${getTime()}</span>
-        </div>
-        <div class="msg-text">${message}</div>
+    const isMine       = sender === username;
+const bubbleClass  = isMine ? 'mine' : (roleClass || 'user');
+
+div.innerHTML = `
+    <div class="msg-avatar" style="background:${getColor(sender)}">${sender[0].toUpperCase()}</div>
+    <div class="msg-body">
+      <div class="msg-header">
+        <span class="msg-author ${roleClass}">${sender}</span>
+        ${pill}
+        <span class="msg-time">${getTime()}</span>
       </div>
-    `;
+      <div class="msg-bubble ${bubbleClass}">${message}</div>
+    </div>
+  `;
     msgs.appendChild(div);
     lastAuthor = sender;
   }
