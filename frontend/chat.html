@@ -31,7 +31,17 @@
         <div class="channel-item" onclick="joinRoom('announcements', this)"># <span>announcements</span></div>
       </div>
 
+      <div class="channel-section">
+        DIRECT MESSAGES <span>+</span>
+      </div>
+      <div id="dm-list">
+        <div style="padding: 4px 16px; font-size: 12px; color: #aecbae;">
+          No DMs yet — join a room first!
+        </div>
+      </div>
+
       <div class="user-bar">
+
         <div class="user-avatar" id="user-avatar">?</div>
         <div class="user-details">
           <div class="uname" id="display-username">...</div>
@@ -77,5 +87,9 @@
 
   <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
   <script src="js/app.js"></script>
+
+  <!-- DM popups container -->
+<div id="dm-popups"></div> 
+
 </body>
 </html>

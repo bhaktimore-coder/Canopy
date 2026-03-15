@@ -221,3 +221,156 @@ function logout() {
   localStorage.clear();
   window.location.href = 'index.html';
 }
+
+// ── FLOATING DM POPUP ─────────────────────
+
+const openDMs = {}; // tracks open DM windows
+
+function addToDMList(name, memberRole) {
+  if (name === username) return;
+
+  const dmList = document.getElementById('dm-list');
+  if (!dmList) return;
+
+  // remove placeholder
+  const placeholder = dmList.querySelector('div[style]');
+  if (placeholder) placeholder.remove();
+
+  // no duplicates
+  if (document.getElementById('dmlist-' + name)) return;
+
+  const div = document.createElement('div');
+  div.classList.add('dm-list-item');
+  div.id = 'dmlist-' + name;
+  div.onclick = () => openDMPopup(name);
+
+  div.innerHTML = `
+    <div class="dm-list-avatar" style="background:${getColor(name)}">
+      ${name[0].toUpperCase()}
+    </div>
+    <span>${name}</span>
+  `;
+
+  dmList.appendChild(div);
+}
+
+function openDMPopup(dmUser) {
+  // if already open just focus it
+  if (openDMs[dmUser]) {
+    const existing = document.getElementById('dm-popup-' + dmUser);
+    if (existing) existing.classList.remove('minimized');
+    return;
+  }
+
+  openDMs[dmUser] = true;
+
+  const roomId = `dm_${[username, dmUser].sort().join('_')}`;
+
+  // join the private room
+  socket.emit('join-room', { roomId, username });
+
+  const popup = document.createElement('div');
+  popup.classList.add('dm-popup');
+  popup.id = 'dm-popup-' + dmUser;
+
+  popup.innerHTML = `
+    <div class="dm-popup-header" onclick="toggleDMMinimize('${dmUser}')">
+      <div class="dm-popup-avatar" style="background:${getColor(dmUser)}">
+        ${dmUser[0].toUpperCase()}
+      </div>
+      <span class="dm-popup-name">${dmUser}</span>
+      <div class="dm-popup-actions">
+        <button class="dm-popup-btn" onclick="event.stopPropagation(); toggleDMMinimize('${dmUser}')">─</button>
+        <button class="dm-popup-btn" onclick="event.stopPropagation(); closeDMPopup('${dmUser}')">✕</button>
+      </div>
+    </div>
+
+    <div class="dm-popup-messages" id="dm-msgs-${dmUser}">
+      <div class="dm-date-divider">Today</div>
+    </div>
+
+    <div class="dm-popup-input-area">
+      <input
+        class="dm-popup-input"
+        id="dm-input-${dmUser}"
+        placeholder="Message ${dmUser}..."
+        onkeydown="if(event.key==='Enter') sendDM('${dmUser}')"
+      />
+      <button class="dm-send-btn" onclick="sendDM('${dmUser}')">➤</button>
+    </div>
+  `;
+
+  document.getElementById('dm-popups').appendChild(popup);
+}
+
+function toggleDMMinimize(dmUser) {
+  const popup = document.getElementById('dm-popup-' + dmUser);
+  if (popup) popup.classList.toggle('minimized');
+}
+
+function closeDMPopup(dmUser) {
+  const popup = document.getElementById('dm-popup-' + dmUser);
+  if (popup) popup.remove();
+  delete openDMs[dmUser];
+}
+
+function sendDM(dmUser) {
+  const input   = document.getElementById('dm-input-' + dmUser);
+  const message = input.value.trim();
+  if (!message) return;
+
+  const roomId = `dm_${[username, dmUser].sort().join('_')}`;
+
+  // show instantly on your side
+  addDMMessage(dmUser, username, message);
+
+  // send through socket
+  socket.emit('send-message', {
+    roomId,
+    message,
+    username,
+    role,
+    isDM: true
+  });
+
+  input.value = '';
+}
+
+function addDMMessage(dmUser, sender, message) {
+  const msgs    = document.getElementById('dm-msgs-' + dmUser);
+  if (!msgs) return;
+
+  const isMine  = sender === username;
+  const div     = document.createElement('div');
+  div.classList.add('dm-msg', isMine ? 'mine' : 'theirs');
+
+  div.innerHTML = `
+    ${!isMine ? `<span class="dm-msg-sender">${sender}</span>` : ''}
+    <div class="dm-msg-bubble">${message}</div>
+    <span class="dm-msg-time">${getTime()}</span>
+  `;
+
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+// listen for incoming DMs
+socket.on('receive-message', ({ username: sender, message, roomId }) => {
+  // check if it's a DM
+  if (roomId && roomId.startsWith('dm_')) {
+    const otherUser = roomId
+      .replace('dm_', '')
+      .replace(username, '')
+      .replace('_', '');
+
+    // open popup if not open
+    if (!openDMs[otherUser]) openDMPopup(otherUser);
+
+    // don't double-show your own messages
+    if (sender !== username) addDMMessage(otherUser, sender, message);
+    return;
+  }
+
+  // otherwise it's a normal channel message
+  addMessage(sender, message);
+});
