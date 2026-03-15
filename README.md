@@ -189,7 +189,8 @@ while the leaves (members) give the whole thing life.
 Where every branch connects. 🌳
 
 
-## 👩‍💻 Built by
+## 👩‍💻 Built by 
+Rajkumari Fhreyalee, Bhakti More, Raksha Singh
 
 A team of three, building under pressure, fuelled by the 
 belief that internal tools don't have to be ugly. 
